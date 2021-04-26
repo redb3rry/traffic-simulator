@@ -1,5 +1,7 @@
 package city;
 
+import java.util.ArrayList;
+
 import static java.lang.Math.abs;
 
 public class Road {
@@ -7,6 +9,7 @@ public class Road {
     private double length;
     private final int speedLimit;
     private final int laneNum;
+    private ArrayList<Car> cars;
 
     public Road(Junction to, Junction from, int speedLimit, int laneNum) {
         this.to = to;
@@ -14,6 +17,7 @@ public class Road {
         this.speedLimit = speedLimit;
         this.laneNum = laneNum;
         length = -1;
+        cars = new ArrayList<>();
     }
 
     public Junction getTo() {
@@ -68,5 +72,13 @@ public class Road {
     }
     public double getLength() {
         return length;
+    }
+
+    public ArrayList<Car> getCars() {
+        return cars;
+    }
+
+    public void setCars(ArrayList<Car> cars) {
+        this.cars = cars;
     }
 }

@@ -1,5 +1,6 @@
 package gui;
 
+import city.Car;
 import city.City;
 import city.Junction;
 import city.Road;
@@ -38,8 +39,10 @@ public class Controller {
                 case "D" -> city.moveLeft(step);
                 case "W" -> city.moveDown(step);
                 case "S" -> city.moveUp(step);
-                case "O" -> city.zoom(1);
-                case "P" -> city.zoom(-1);
+                case "L" -> city.updateCity();
+//                case "K" -> city.changeL();
+//                case "O" -> city.zoom(1);
+//                case "P" -> city.zoom(-1);
             }
             draw();
         }
@@ -53,10 +56,66 @@ public class Controller {
 
     private void draw() {
         double drawLen = city.getDrawLen();
+        double offset = city.getOffset();
         prepareBackground();
         GraphicsContext gc = simulationView.getGraphicsContext2D();
         drawJunctions(drawLen, gc);
         drawRoads(drawLen, gc);
+        drawCars(drawLen, gc, offset);
+    }
+
+    private void drawCars(double drawLen, GraphicsContext gc, double cityOffset) {
+        double carDrawLen = drawLen / 2;
+        for (Road road : city.getRoads()) {
+            int side = road.getSide();
+            for (Car car : road.getCars()) {
+                double offset = cityOffset;
+                int lane = car.getLane();
+                double laneOffset = lane * 4 * offset;
+                int laneNum = road.getLaneNum();
+                if (laneNum == 2) {
+                    offset *= 2;
+                    laneOffset = lane * 3 * offset;
+                } else if (laneNum == 1) {
+                    offset *= 2;
+                }
+                double carPosX = 0, carPosY = 0;
+                switch (side) {
+                    case 0 -> {
+                        carPosX = road.getFrom().getX() + maxLanes * drawLen + car.getCurrentPosition();
+                        carPosY = road.getFrom().getY() + (double) maxLanes / 2 * drawLen + offset + laneOffset;
+                    }
+                    case 2 -> {
+                        carPosX = road.getFrom().getX() - 2 * carDrawLen - car.getCurrentPosition();
+                        carPosY = road.getFrom().getY() + (double) maxLanes / 2 * drawLen - carDrawLen - offset - laneOffset;
+                    }
+                    case 1 -> {
+                        carPosX = road.getFrom().getX() + (double) maxLanes / 2 * drawLen - carDrawLen - offset - laneOffset;
+                        carPosY = road.getFrom().getY() + maxLanes * drawLen + car.getCurrentPosition();
+                    }
+                    case 3 -> {
+                        carPosX = road.getFrom().getX() + (double) maxLanes / 2 * drawLen + offset + laneOffset;
+                        carPosY = road.getFrom().getY() - 2 * carDrawLen - car.getCurrentPosition();
+                    }
+                }
+                gc.beginPath();
+                gc.setStroke(Color.BLUE);
+                gc.setLineWidth(1);
+                gc.moveTo(carPosX, carPosY);
+                if (side == 0 || side == 2) {
+                    gc.lineTo(carPosX + 2 * carDrawLen, carPosY);
+                    gc.lineTo(carPosX + 2 * carDrawLen, carPosY + carDrawLen);
+                    gc.lineTo(carPosX, carPosY + carDrawLen);
+                    gc.lineTo(carPosX, carPosY);
+                } else {
+                    gc.lineTo(carPosX + carDrawLen, carPosY);
+                    gc.lineTo(carPosX + carDrawLen, carPosY + 2 * carDrawLen);
+                    gc.lineTo(carPosX, carPosY + 2 * carDrawLen);
+                    gc.lineTo(carPosX, carPosY);
+                }
+                gc.stroke();
+            }
+        }
     }
 
     private void drawRoads(double drawLen, GraphicsContext gc) {
@@ -108,19 +167,43 @@ public class Controller {
     }
 
     private void drawJunctions(double drawLen, GraphicsContext gc) {
-        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(2);
-        gc.beginPath();
+
         for (Junction junction : city.getJunctions()) {
             double x = junction.getX();
             double y = junction.getY();
+            gc.setStroke(Color.BLACK);
+            gc.setLineWidth(2);
+            gc.beginPath();
             gc.moveTo(x, y);
             gc.lineTo(x + maxLanes * drawLen, y);
             gc.lineTo(x + maxLanes * drawLen, y + maxLanes * drawLen);
             gc.lineTo(x, y + maxLanes * drawLen);
             gc.lineTo(x, y);
+            gc.stroke();
+
+            gc.beginPath();
+            gc.setStroke(Color.GREEN);
+            gc.setLineWidth(5);
+            if (junction.checkForGreenLight(0)) {
+                gc.moveTo(x, y + maxLanes * drawLen / 2);
+                gc.lineTo(x + maxLanes * drawLen, y + maxLanes * drawLen / 2);
+                gc.stroke();
+                gc.beginPath();
+                gc.setStroke(Color.RED);
+                gc.moveTo(x + maxLanes * drawLen / 2, y);
+                gc.lineTo(x + maxLanes * drawLen / 2, y + maxLanes * drawLen);
+            } else {
+                gc.moveTo(x + maxLanes * drawLen / 2, y);
+                gc.lineTo(x + maxLanes * drawLen / 2, y + maxLanes * drawLen);
+                gc.stroke();
+                gc.beginPath();
+                gc.setStroke(Color.RED);
+                gc.moveTo(x, y + maxLanes * drawLen / 2);
+                gc.lineTo(x + maxLanes * drawLen, y + maxLanes * drawLen / 2);
+            }
+            gc.stroke();
         }
-        gc.stroke();
+
     }
 
     private void drawRoadLeftRight(double sX, double sY, double eX, double eY, int lanes, GraphicsContext gc) {
