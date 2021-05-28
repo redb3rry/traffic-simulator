@@ -40,7 +40,8 @@ public class Controller {
                 case "W" -> city.moveDown(step);
                 case "S" -> city.moveUp(step);
                 case "L" -> city.updateCity();
-//                case "K" -> city.changeL();
+                case "K" -> city.changeL();
+                case "C" -> city.addRandCar();
 //                case "O" -> city.zoom(1);
 //                case "P" -> city.zoom(-1);
             }
@@ -86,7 +87,7 @@ public class Controller {
                         carPosY = road.getFrom().getY() + (double) maxLanes / 2 * drawLen + offset + laneOffset;
                     }
                     case 2 -> {
-                        carPosX = road.getFrom().getX() - 2 * carDrawLen - car.getCurrentPosition();
+                        carPosX = road.getFrom().getX() - car.getCurrentPosition();
                         carPosY = road.getFrom().getY() + (double) maxLanes / 2 * drawLen - carDrawLen - offset - laneOffset;
                     }
                     case 1 -> {
@@ -95,19 +96,29 @@ public class Controller {
                     }
                     case 3 -> {
                         carPosX = road.getFrom().getX() + (double) maxLanes / 2 * drawLen + offset + laneOffset;
-                        carPosY = road.getFrom().getY() - 2 * carDrawLen - car.getCurrentPosition();
+                        carPosY = road.getFrom().getY() - car.getCurrentPosition();
                     }
                 }
                 gc.beginPath();
                 gc.setStroke(Color.BLUE);
                 gc.setLineWidth(1);
                 gc.moveTo(carPosX, carPosY);
-                if (side == 0 || side == 2) {
+                if (side == 0) {
+                    gc.lineTo(carPosX - 2 * carDrawLen, carPosY);
+                    gc.lineTo(carPosX - 2 * carDrawLen, carPosY + carDrawLen);
+                    gc.lineTo(carPosX, carPosY + carDrawLen);
+                    gc.lineTo(carPosX, carPosY);
+                } else if(side == 2){
                     gc.lineTo(carPosX + 2 * carDrawLen, carPosY);
                     gc.lineTo(carPosX + 2 * carDrawLen, carPosY + carDrawLen);
                     gc.lineTo(carPosX, carPosY + carDrawLen);
                     gc.lineTo(carPosX, carPosY);
-                } else {
+                } else if(side == 1){
+                    gc.lineTo(carPosX + carDrawLen, carPosY);
+                    gc.lineTo(carPosX + carDrawLen, carPosY - 2 * carDrawLen);
+                    gc.lineTo(carPosX, carPosY - 2 * carDrawLen);
+                    gc.lineTo(carPosX, carPosY);
+                } else{
                     gc.lineTo(carPosX + carDrawLen, carPosY);
                     gc.lineTo(carPosX + carDrawLen, carPosY + 2 * carDrawLen);
                     gc.lineTo(carPosX, carPosY + 2 * carDrawLen);

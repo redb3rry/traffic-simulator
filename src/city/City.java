@@ -1,9 +1,8 @@
 package city;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.NoSuchElementException;
-import java.util.Queue;
+import java.util.*;
+
+import static java.lang.Math.max;
 
 public class City {
     private ArrayList<Junction> junctions;
@@ -13,7 +12,9 @@ public class City {
     private double offset;
     private float timeElapsed;
     private float tick;
-    private double acceptableTimeError=0.001;
+    private double acceptableTimeError = 0.01;
+    Queue<Road> route = new LinkedList<>();
+    Queue<Road> route2 = new LinkedList<>();
 
     public double getDrawLen() {
         return drawLen;
@@ -41,9 +42,6 @@ public class City {
         cars = new ArrayList<>();
 
         //TESTING
-        ArrayList<Car> cars2 = new ArrayList<>();
-        Car testCar = new Car(100, 0, 5, 10, new Driver(), junctions.get(0), junctions.get(3));
-        Queue<Road> route = new LinkedList<>();
         route.add(roads.get(2));
         route.add(roads.get(4));
         route.add(roads.get(6));
@@ -51,12 +49,6 @@ public class City {
         route.add(roads.get(2));
         route.add(roads.get(4));
         route.add(roads.get(6));
-        testCar.setRoute(route);
-        testCar.setLane(1);
-        cars.add(testCar);
-        roads.get(0).setCars(cars);
-        Car testCar2 = new Car(100, 0, 5, 10, new Driver(), junctions.get(0), junctions.get(3));
-        Queue<Road> route2 = new LinkedList<>();
         route2.add(roads.get(5));
         route2.add(roads.get(3));
         route2.add(roads.get(1));
@@ -64,10 +56,21 @@ public class City {
         route2.add(roads.get(5));
         route2.add(roads.get(3));
         route2.add(roads.get(1));
-        testCar2.setRoute(route2);
-        testCar.setLane(0);
-        cars2.add(testCar2);
-        roads.get(7).setCars(cars2);
+    }
+
+    public void addRandCar() {
+        Car car = new Car(100, 0, getRandomNumber(1, 10), getRandomNumber(20, 45), new Driver(), junctions.get(0), junctions.get(3));
+        car.setLane(0);
+        int randQ = getRandomNumber(0, 2);
+        if (randQ == 1) {
+            Queue<Road> carRoute = new LinkedList<>(route);
+            car.setRoute(carRoute);
+            roads.get(0).getCars().add(car);
+        } else {
+            Queue<Road> carRoute = new LinkedList<>(route2);
+            car.setRoute(carRoute);
+            roads.get(7).getCars().add(car);
+        }
     }
 
     public void moveUp(double step) {
@@ -132,48 +135,108 @@ public class City {
     }
 
     public void updateCity() {
-        System.out.println(timeElapsed);
-        for (Junction junction : junctions) {
-            if (timeElapsed % junction.getLightChangeTime() < acceptableTimeError || junction.getLightChangeTime() - timeElapsed % junction.getLightChangeTime() < acceptableTimeError) {
-                junction.changeLights();
-            }
-        }
+        //System.out.println(timeElapsed);
+        updateTrafficLights();
+        updateCars();
+        timeElapsed += tick;
+    }
+
+    private void updateCars() {
         for (Road road : roads) {
+            Collections.sort(road.getCars());
             ArrayList<Car> carsToMove = new ArrayList<>();
-            for (Car car : road.getCars()) {
+            for (int i = 0; i < road.getCars().size(); i++) {
+                Car car = road.getCars().get(i);
+                double nextCarPos = Double.MAX_VALUE;
+                //Avoid collision
+                ArrayList<Car> carsInFront = new ArrayList<>();
+                for (int j = i + 1; (j < road.getCars().size()); j++) {
+                    carsInFront.add(road.getCars().get(j));
+                }
+                boolean slowDown = false;
+                for (Car nextCar : carsInFront) {
+                    nextCarPos = nextCar.getCurrentPosition();
+                    int nextCarLane = nextCar.getLane();
+                    if (car.getLane() == nextCarLane && car.getCurrentPosition() + 4 * car.getCurrentSpeed() > nextCarPos - car.getDriver().stopBuffer) {
+                        slowDown = true;
+                        break;
+                    }
+                }
+                if (slowDown) {
+                    if (nextCarPos - car.getCurrentPosition() < 30 && road.getLaneNum() != 1) {
+                        if (car.tryChangeLane(road, car, i, drawLen)) {
+                            continue;
+                        }
+                    }
+                    car.changeSpeed((-1) * car.getDeceleration() * tick);
+                    if (car.getCurrentSpeed() < 1) {
+                        car.setCurrentSpeed(0);
+                    } else {
+                        car.move(car.getCurrentSpeed());
+                    }
+                    continue;
+                }
                 //Close to junction
                 if (road.getLength() - car.getCurrentPosition() < 2) {
                     if (road.getTo().checkForGreenLight(road.getSide())) {
                         carsToMove.add(car);
-                        continue;
-                    } else {
+                    }
+                    continue;
+                } else if (road.getLength() - car.getCurrentPosition() < 35) {
+                    if(!road.getTo().checkForGreenLight(road.getSide())) {
+                        car.setCurrentSpeed(1);
+                        car.move(1);
                         continue;
                     }
-                } else if (road.getLength() - car.getCurrentPosition() < 35) {
-                    car.setCurrentSpeed(1);
-                    car.move(1);
-                    continue;
                 }
-
                 //Driving
                 if (car.getCurrentPosition() + 4 * car.getCurrentSpeed() > road.getLength() - car.getDriver().stopBuffer) {
-                    car.changeSpeed((-1) * car.getDeceleration() * tick);
+                    if(!road.getTo().checkForGreenLight(road.getSide())) {
+                        car.changeSpeed((-1) * car.getDeceleration() * tick);
+                        if (car.getCurrentSpeed() < 0) {
+                            car.setCurrentSpeed(1);
+                        }
+                    }
                 } else if (car.getCurrentSpeed() < road.getSpeedLimit() && car.getCurrentSpeed() < car.getMaxSpeed()) {
                     car.changeSpeed(car.getAcceleration() * tick);
                 }
                 car.move(car.getCurrentSpeed());
             }
             //Move cars through junctions
-            for (Car car : carsToMove) {
-                road.getCars().remove(car);
-                if (car.getRoute().isEmpty()) {
+            moveCarsThroughJunctions(road, carsToMove);
+        }
+
+    }
+
+    private void moveCarsThroughJunctions(Road road, ArrayList<Car> carsToMove) {
+        for (Car car : carsToMove) {
+            try {
+                if (car.getRoute().peek().getCars().get(0).getCurrentPosition() < drawLen) {
                     continue;
                 }
-                Road nextRoad = car.getRoute().remove();
-                car.setCurrentPosition(0);
-                nextRoad.getCars().add(car);
+            } catch (NullPointerException | IndexOutOfBoundsException ex) {
+                assert true;
+            }
+            road.getCars().remove(car);
+            if (car.getRoute().isEmpty()) {
+                continue;
+            }
+            Road nextRoad = car.getRoute().remove();
+            car.setCurrentPosition(0);
+            car.setLane(nextRoad.getLaneNum()-1);
+            nextRoad.getCars().add(car);
+        }
+    }
+
+    private void updateTrafficLights() {
+        for (Junction junction : junctions) {
+            if (timeElapsed % junction.getLightChangeTime() < acceptableTimeError || junction.getLightChangeTime() - timeElapsed % junction.getLightChangeTime() < acceptableTimeError) {
+                junction.changeLights();
             }
         }
-        timeElapsed += tick;
+    }
+
+    public int getRandomNumber(int min, int max) {
+        return (int) ((Math.random() * (max - min)) + min);
     }
 }
