@@ -20,6 +20,11 @@ public class Road {
         cars = new ArrayList<>();
     }
 
+    @Override
+    public String toString(){
+        return String.format(from.getId() + " -> " + to.getId() + ", length: " + length);
+    }
+
     public Junction getTo() {
         return to;
     }
@@ -36,14 +41,14 @@ public class Road {
         return laneNum;
     }
 
-    @Override
-    public String toString() {
-        return "Road{" +
-                "to=" + to +
-                ", from=" + from +
-                ", speedLimit=" + speedLimit +
-                '}';
-    }
+//    @Override
+//    public String toString() {
+//        return "Road{" +
+//                "to=" + to +
+//                ", from=" + from +
+//                ", speedLimit=" + speedLimit +
+//                '}';
+//    }
 
     public int getSide() {
         double tX = to.getX();

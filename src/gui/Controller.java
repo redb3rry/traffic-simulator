@@ -52,7 +52,7 @@ public class Controller {
     private void prepareBackground() {
         GraphicsContext gc = simulationView.getGraphicsContext2D();
         gc.setFill(Color.WHITE);
-        gc.fillRect(0, 0, 800, 800);
+        gc.fillRect(0, 0, 1600, 900);
     }
 
     private void draw() {

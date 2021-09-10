@@ -14,7 +14,7 @@ public class Main extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("simulator.fxml"));
         primaryStage.initStyle(StageStyle.DECORATED);
         primaryStage.setTitle("Traffic Simulator");
-        primaryStage.setScene(new Scene(root, 800, 600));
+        primaryStage.setScene(new Scene(root, 1600, 900));
         primaryStage.show();
     }
 

@@ -1,5 +1,8 @@
 package city;
 
+import router.IRouter;
+import router.StaticRouter;
+
 import java.util.*;
 
 import static java.lang.Math.max;
@@ -11,8 +14,10 @@ public class City {
     private double drawLen;
     private double offset;
     private float timeElapsed;
-    private float tick;
+    private int tick;
+    private float timeMultiplier;
     private double acceptableTimeError = 0.01;
+    private IRouter router;
     Queue<Road> route = new LinkedList<>();
     Queue<Road> route2 = new LinkedList<>();
 
@@ -38,39 +43,50 @@ public class City {
         this.drawLen = 10;
         this.offset = 2.5;
         this.timeElapsed = 0;
-        this.tick = 0.1f;
+        this.tick = 1;
+        this.timeMultiplier = 0.1f;
         cars = new ArrayList<>();
 
         //TESTING
-        route.add(roads.get(2));
-        route.add(roads.get(4));
-        route.add(roads.get(6));
-        route.add(roads.get(0));
-        route.add(roads.get(2));
-        route.add(roads.get(4));
-        route.add(roads.get(6));
-        route2.add(roads.get(5));
-        route2.add(roads.get(3));
-        route2.add(roads.get(1));
-        route2.add(roads.get(7));
-        route2.add(roads.get(5));
-        route2.add(roads.get(3));
-        route2.add(roads.get(1));
+        router = new StaticRouter(this);
+
+//        route.add(roads.get(2));
+//        route.add(roads.get(4));
+//        route.add(roads.get(6));
+//        route.add(roads.get(0));
+//        route.add(roads.get(2));
+//        route.add(roads.get(4));
+//        route.add(roads.get(6));
+//        route2.add(roads.get(5));
+//        route2.add(roads.get(3));
+//        route2.add(roads.get(1));
+//        route2.add(roads.get(7));
+//        route2.add(roads.get(5));
+//        route2.add(roads.get(3));
+//        route2.add(roads.get(1));
     }
 
+    //FOR TESTING PURPOSES
     public void addRandCar() {
-        Car car = new Car(100, 0, getRandomNumber(1, 10), getRandomNumber(20, 45), new Driver(), junctions.get(0), junctions.get(3));
+        int randStart = getRandomNumber(0, 7);
+        int randEnd = getRandomNumber(0,7);
+        Car car = new Car(100, 0, getRandomNumber(1, 10), getRandomNumber(20, 45), new Driver(), junctions.get(randStart), junctions.get(randEnd));
         car.setLane(0);
-        int randQ = getRandomNumber(0, 2);
-        if (randQ == 1) {
-            Queue<Road> carRoute = new LinkedList<>(route);
-            car.setRoute(carRoute);
-            roads.get(0).getCars().add(car);
-        } else {
-            Queue<Road> carRoute = new LinkedList<>(route2);
-            car.setRoute(carRoute);
-            roads.get(7).getCars().add(car);
-        }
+        Queue<Road> foundRoute = router.findRoute(junctions.get(randStart), junctions.get(randEnd));
+        Queue<Road> carRoute = new LinkedList<>(foundRoute);
+        Road firstRoad = carRoute.remove();
+        System.out.println(firstRoad);
+        car.setRoute(carRoute);
+        firstRoad.getCars().add(car);
+//        if (randQ == 1) {
+//            Queue<Road> carRoute = new LinkedList<>(route);
+//            car.setRoute(carRoute);
+//            roads.get(0).getCars().add(car);
+//        } else {
+//            Queue<Road> carRoute = new LinkedList<>(route2);
+//            car.setRoute(carRoute);
+//            roads.get(7).getCars().add(car);
+//        }
     }
 
     public void moveUp(double step) {
@@ -135,7 +151,7 @@ public class City {
     }
 
     public void updateCity() {
-        //System.out.println(timeElapsed);
+//        System.out.println(timeElapsed);
         updateTrafficLights();
         updateCars();
         timeElapsed += tick;
@@ -168,7 +184,7 @@ public class City {
                             continue;
                         }
                     }
-                    car.changeSpeed((-1) * car.getDeceleration() * tick);
+                    car.changeSpeed((-1) * car.getDeceleration() * (tick * timeMultiplier));
                     if (car.getCurrentSpeed() < 1) {
                         car.setCurrentSpeed(0);
                     } else {
@@ -192,13 +208,13 @@ public class City {
                 //Driving
                 if (car.getCurrentPosition() + 4 * car.getCurrentSpeed() > road.getLength() - car.getDriver().stopBuffer) {
                     if(!road.getTo().checkForGreenLight(road.getSide())) {
-                        car.changeSpeed((-1) * car.getDeceleration() * tick);
+                        car.changeSpeed((-1) * car.getDeceleration() * (tick*timeMultiplier));
                         if (car.getCurrentSpeed() < 0) {
                             car.setCurrentSpeed(1);
                         }
                     }
                 } else if (car.getCurrentSpeed() < road.getSpeedLimit() && car.getCurrentSpeed() < car.getMaxSpeed()) {
-                    car.changeSpeed(car.getAcceleration() * tick);
+                    car.changeSpeed(car.getAcceleration() * (tick*timeMultiplier));
                 }
                 car.move(car.getCurrentSpeed());
             }
@@ -230,7 +246,7 @@ public class City {
 
     private void updateTrafficLights() {
         for (Junction junction : junctions) {
-            if (timeElapsed % junction.getLightChangeTime() < acceptableTimeError || junction.getLightChangeTime() - timeElapsed % junction.getLightChangeTime() < acceptableTimeError) {
+            if ((timeElapsed*timeMultiplier) % junction.getLightChangeTime() == 0) {
                 junction.changeLights();
             }
         }
@@ -238,5 +254,14 @@ public class City {
 
     public int getRandomNumber(int min, int max) {
         return (int) ((Math.random() * (max - min)) + min);
+    }
+
+    public Road getRoadFromTo(Junction from, Junction to){
+        for( Road road: roads){
+            if(road.getFrom() == from && road.getTo() == to){
+                return road;
+            }
+        }
+        return null;
     }
 }

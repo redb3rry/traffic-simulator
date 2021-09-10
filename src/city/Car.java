@@ -3,7 +3,7 @@ package city;
 import java.util.ArrayList;
 import java.util.Queue;
 
-public class Car implements Comparable<Car>{
+public class Car implements Comparable<Car> {
     private double maxSpeed, currentSpeed;
     private double acceleration, deceleration;
     private Driver driver;
@@ -30,7 +30,7 @@ public class Car implements Comparable<Car>{
         this.currentSpeed += change;
     }
 
-    public void setCurrentSpeed(double speed){
+    public void setCurrentSpeed(double speed) {
         this.currentSpeed = speed;
     }
 
@@ -50,7 +50,7 @@ public class Car implements Comparable<Car>{
         this.currentPosition = currentPosition;
     }
 
-    public void move(double change){
+    public void move(double change) {
         this.currentPosition += change;
     }
 
@@ -88,7 +88,7 @@ public class Car implements Comparable<Car>{
 
     @Override
     public int compareTo(Car o) {
-        if(this.currentPosition > o.currentPosition){
+        if (this.currentPosition > o.currentPosition) {
             return 1;
         } else {
             return -1;
@@ -107,7 +107,7 @@ public class Car implements Comparable<Car>{
         }
         double nextCarLane = cars.get(carId + 1).getLane();
         int laneNum = road.getLaneNum();
-        if(car.getLane() == nextCarLane) {
+        if (car.getLane() == nextCarLane) {
             if (prevCar == null && prevCar2 == null) {
                 if (car.getLane() == laneNum - 1) {
                     car.setLane(car.getLane() - 1);
@@ -118,10 +118,10 @@ public class Car implements Comparable<Car>{
             } else if (prevCar2 == null) {
                 int pcLane = prevCar.getLane();
                 double posDif = car.getCurrentPosition() - prevCar.getCurrentPosition();
-                if ((pcLane != car.getLane() - 1 || posDif > 1.5*drawLen) && car.getLane() - 1 >= 0) {
+                if ((pcLane != car.getLane() - 1 || posDif > 1.5 * drawLen) && car.getLane() - 1 >= 0) {
                     car.setLane(car.getLane() - 1);
                     return true;
-                } else if ((pcLane != car.getLane() + 1 || posDif > 1.5*drawLen) && car.getLane() + 1 < laneNum) {
+                } else if ((pcLane != car.getLane() + 1 || posDif > 1.5 * drawLen) && car.getLane() + 1 < laneNum) {
                     car.setLane(car.getLane() + 1);
                     return true;
                 }
@@ -130,13 +130,13 @@ public class Car implements Comparable<Car>{
                 int pc2Lane = prevCar2.getLane();
                 double posDif = car.getCurrentPosition() - prevCar.getCurrentPosition();
                 double posDif2 = car.getCurrentPosition() - prevCar2.getCurrentPosition();
-                if (((pcLane != car.getLane() - 1) || posDif > 1.5*drawLen) && car.getLane() - 1 >= 0) {
-                    if (pc2Lane != car.getLane() - 1 || posDif2 > 1.5*drawLen) {
+                if (((pcLane != car.getLane() - 1) || posDif > 1.5 * drawLen) && car.getLane() - 1 >= 0) {
+                    if (pc2Lane != car.getLane() - 1 || posDif2 > 1.5 * drawLen) {
                         car.setLane(car.getLane() - 1);
                         return true;
                     }
-                } else if (((pcLane != car.getLane() + 1) || posDif > 1.5*drawLen) && car.getLane() + 1 < laneNum) {
-                    if (pc2Lane != car.getLane() + 1 || posDif2 > 1.5*drawLen) {
+                } else if (((pcLane != car.getLane() + 1) || posDif > 1.5 * drawLen) && car.getLane() + 1 < laneNum) {
+                    if (pc2Lane != car.getLane() + 1 || posDif2 > 1.5 * drawLen) {
                         car.setLane(car.getLane() + 1);
                         return true;
                     }
