@@ -1,5 +1,6 @@
 package city;
 
+import router.DynamicRouter;
 import router.IRouter;
 import router.StaticRouter;
 
@@ -11,15 +12,12 @@ public class City {
     private ArrayList<Junction> junctions;
     private ArrayList<Road> roads;
     private ArrayList<Car> cars;
-    private double drawLen;
-    private double offset;
+    private final double drawLen;
+    private final double offset;
     private float timeElapsed;
     private int tick;
     private float timeMultiplier;
-    private double acceptableTimeError = 0.01;
     private IRouter router;
-    Queue<Road> route = new LinkedList<>();
-    Queue<Road> route2 = new LinkedList<>();
 
     public double getDrawLen() {
         return drawLen;
@@ -48,45 +46,23 @@ public class City {
         cars = new ArrayList<>();
 
         //TESTING
-        router = new StaticRouter(this);
-
-//        route.add(roads.get(2));
-//        route.add(roads.get(4));
-//        route.add(roads.get(6));
-//        route.add(roads.get(0));
-//        route.add(roads.get(2));
-//        route.add(roads.get(4));
-//        route.add(roads.get(6));
-//        route2.add(roads.get(5));
-//        route2.add(roads.get(3));
-//        route2.add(roads.get(1));
-//        route2.add(roads.get(7));
-//        route2.add(roads.get(5));
-//        route2.add(roads.get(3));
-//        route2.add(roads.get(1));
+        router = new DynamicRouter(this);
     }
 
     //FOR TESTING PURPOSES
     public void addRandCar() {
         int randStart = getRandomNumber(0, 7);
         int randEnd = getRandomNumber(0,7);
+        while(randStart == randEnd){
+            randEnd = getRandomNumber(0,7);
+        }
         Car car = new Car(100, 0, getRandomNumber(1, 10), getRandomNumber(20, 45), new Driver(), junctions.get(randStart), junctions.get(randEnd));
         car.setLane(0);
         Queue<Road> foundRoute = router.findRoute(junctions.get(randStart), junctions.get(randEnd));
         Queue<Road> carRoute = new LinkedList<>(foundRoute);
         Road firstRoad = carRoute.remove();
-        System.out.println(firstRoad);
         car.setRoute(carRoute);
         firstRoad.getCars().add(car);
-//        if (randQ == 1) {
-//            Queue<Road> carRoute = new LinkedList<>(route);
-//            car.setRoute(carRoute);
-//            roads.get(0).getCars().add(car);
-//        } else {
-//            Queue<Road> carRoute = new LinkedList<>(route2);
-//            car.setRoute(carRoute);
-//            roads.get(7).getCars().add(car);
-//        }
     }
 
     public void moveUp(double step) {

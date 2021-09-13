@@ -58,7 +58,6 @@ public class StaticRouter implements IRouter {
     }
 
     private double[][] cityToGraph(City city) {
-        N = city.getJunctions().size();
         double[][] graph = new double [N][N];
         for(int i = 0; i < N; i ++){
             for(int j = 0; j < N; j ++){
@@ -73,6 +72,7 @@ public class StaticRouter implements IRouter {
     }
 
     public StaticRouter(City city) {
+        N = city.getJunctions().size();
         cityGraph = cityToGraph(city);
         floydWarshall(city);
     }
