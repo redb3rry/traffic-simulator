@@ -44,8 +44,6 @@ public class City {
         this.tick = 1;
         this.timeMultiplier = 0.1f;
         cars = new ArrayList<>();
-
-        //TESTING
         router = new DynamicRouter(this);
     }
 
@@ -56,7 +54,7 @@ public class City {
         while(randStart == randEnd){
             randEnd = getRandomNumber(0,7);
         }
-        Car car = new Car(100, 0, getRandomNumber(1, 10), getRandomNumber(20, 45), new Driver(), junctions.get(randStart), junctions.get(randEnd));
+        Car car = new Car(100, 0, getRandomNumber(5, 10), getRandomNumber(40, 80), new Driver(), junctions.get(randStart), junctions.get(randEnd));
         car.setLane(0);
         Queue<Road> foundRoute = router.findRoute(junctions.get(randStart), junctions.get(randEnd));
         Queue<Road> carRoute = new LinkedList<>(foundRoute);
@@ -175,20 +173,25 @@ public class City {
                     }
                     continue;
                 } else if (road.getLength() - car.getCurrentPosition() < 35) {
+                    //TODO double check this
                     if(!road.getTo().checkForGreenLight(road.getSide())) {
-                        car.setCurrentSpeed(1);
-                        car.move(1);
+//                        car.setCurrentSpeed(1);
+//                        car.move(1);
+//                        continue;
+                        car.changeSpeed((-2) * car.getDeceleration() * (tick*timeMultiplier));
+                        if (car.getCurrentSpeed() < 0) {
+                            car.setCurrentSpeed(1);
+                        }
+                        car.move(car.getCurrentSpeed());
                         continue;
                     }
                 }
                 //Driving
-                if (car.getCurrentPosition() + 4 * car.getCurrentSpeed() > road.getLength() - car.getDriver().stopBuffer) {
-                    if(!road.getTo().checkForGreenLight(road.getSide())) {
+                if (car.getCurrentPosition() + 4 * car.getCurrentSpeed() > road.getLength() - car.getDriver().stopBuffer && !road.getTo().checkForGreenLight(road.getSide())) {
                         car.changeSpeed((-1) * car.getDeceleration() * (tick*timeMultiplier));
                         if (car.getCurrentSpeed() < 0) {
                             car.setCurrentSpeed(1);
                         }
-                    }
                 } else if (car.getCurrentSpeed() < road.getSpeedLimit() && car.getCurrentSpeed() < car.getMaxSpeed()) {
                     car.changeSpeed(car.getAcceleration() * (tick*timeMultiplier));
                 }
