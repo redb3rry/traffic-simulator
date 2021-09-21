@@ -11,6 +11,10 @@ public class Road {
     private final int laneNum;
     private ArrayList<Car> cars;
 
+    private double speedSum;
+    private double flowSum;
+    private int roadMoveCounter;
+
     public Road(Junction to, Junction from, int speedLimit, int laneNum) {
         this.to = to;
         this.from = from;
@@ -18,6 +22,7 @@ public class Road {
         this.laneNum = laneNum;
         length = -1;
         cars = new ArrayList<>();
+        roadMoveCounter = 0;
     }
 
     @Override
@@ -49,6 +54,16 @@ public class Road {
 //                ", speedLimit=" + speedLimit +
 //                '}';
 //    }
+
+    public void updateStatistics(double carSpeed) {
+        roadMoveCounter++;
+        speedSum += carSpeed;
+        flowSum += carSpeed/speedLimit;
+    }
+
+    public String getStatistics(){
+        return "Road " + from.getId() + " -> " + to.getId() + ": Average speed = " + speedSum/ roadMoveCounter + "; Average flow = " + flowSum/ roadMoveCounter *100;
+    }
 
     public int getSide() {
         double tX = to.getX();

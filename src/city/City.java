@@ -12,6 +12,9 @@ public class City {
     private ArrayList<Junction> junctions;
     private ArrayList<Road> roads;
     private ArrayList<Car> cars;
+    private int junctionsNum;
+    private int maxAllowedCars = 100;
+    private int currentCars;
     private final double drawLen;
     private final double offset;
     private float timeElapsed;
@@ -27,6 +30,9 @@ public class City {
         return offset;
     }
 
+    public int getMaxAllowedCars() { return maxAllowedCars; }
+    public int getCurrentCars() { return currentCars; }
+
     public ArrayList<Junction> getJunctions() {
         return junctions;
     }
@@ -37,6 +43,8 @@ public class City {
 
     public City(ArrayList<Junction> junctions, ArrayList<Road> roads) {
         this.junctions = junctions;
+        this.junctionsNum = junctions.size();
+        this.currentCars = 0;
         this.roads = roads;
         this.drawLen = 10;
         this.offset = 2.5;
@@ -49,10 +57,10 @@ public class City {
 
     //FOR TESTING PURPOSES
     public void addRandCar() {
-        int randStart = getRandomNumber(0, 7);
-        int randEnd = getRandomNumber(0,7);
+        int randStart = getRandomNumber(0, junctionsNum);
+        int randEnd = getRandomNumber(0,junctionsNum);
         while(randStart == randEnd){
-            randEnd = getRandomNumber(0,7);
+            randEnd = getRandomNumber(0,junctionsNum);
         }
         Car car = new Car(100, 0, getRandomNumber(5, 10), getRandomNumber(40, 80), new Driver(), junctions.get(randStart), junctions.get(randEnd));
         car.setLane(0);
@@ -61,6 +69,7 @@ public class City {
         Road firstRoad = carRoute.remove();
         car.setRoute(carRoute);
         firstRoad.getCars().add(car);
+        currentCars++;
     }
 
     public void moveUp(double step) {
@@ -162,7 +171,7 @@ public class City {
                     if (car.getCurrentSpeed() < 1) {
                         car.setCurrentSpeed(0);
                     } else {
-                        car.move(car.getCurrentSpeed());
+                        moveCar(road, car);
                     }
                     continue;
                 }
@@ -182,7 +191,7 @@ public class City {
                         if (car.getCurrentSpeed() < 0) {
                             car.setCurrentSpeed(1);
                         }
-                        car.move(car.getCurrentSpeed());
+                        moveCar(road, car);
                         continue;
                     }
                 }
@@ -195,13 +204,19 @@ public class City {
                 } else if (car.getCurrentSpeed() < road.getSpeedLimit() && car.getCurrentSpeed() < car.getMaxSpeed()) {
                     car.changeSpeed(car.getAcceleration() * (tick*timeMultiplier));
                 }
-                car.move(car.getCurrentSpeed());
+                moveCar(road, car);
             }
             //Move cars through junctions
             moveCarsThroughJunctions(road, carsToMove);
         }
 
     }
+
+    private void moveCar(Road road, Car car) {
+        road.updateStatistics(car.getCurrentSpeed());
+        car.move(car.getCurrentSpeed());
+    }
+
 
     private void moveCarsThroughJunctions(Road road, ArrayList<Car> carsToMove) {
         for (Car car : carsToMove) {
@@ -214,6 +229,7 @@ public class City {
             }
             road.getCars().remove(car);
             if (car.getRoute().isEmpty()) {
+                currentCars--;
                 continue;
             }
             Road nextRoad = car.getRoute().remove();
@@ -242,5 +258,11 @@ public class City {
             }
         }
         return null;
+    }
+
+    public void printRoadStatistics(){
+        for(Road road: roads){
+            System.out.println(road.getStatistics());
+        }
     }
 }

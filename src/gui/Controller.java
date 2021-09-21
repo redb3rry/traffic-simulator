@@ -1,15 +1,17 @@
 package gui;
 
-import city.Car;
-import city.City;
-import city.Junction;
-import city.Road;
+import city.*;
 import file.CityReader;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.input.KeyEvent;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
@@ -28,6 +30,9 @@ public class Controller {
         CityReader reader = new CityReader("src/city.txt");
         city = reader.readCity();
         draw();
+        CityUpdater updater = new CityUpdater(city, this);
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleAtFixedRate(updater, 0, 35, TimeUnit.MILLISECONDS);
     }
 
     @FXML
@@ -42,6 +47,7 @@ public class Controller {
                 case "L" -> city.updateCity();
                 case "K" -> city.changeL();
                 case "C" -> city.addRandCar();
+                case "Q" -> city.printRoadStatistics();
 //                case "O" -> city.zoom(1);
 //                case "P" -> city.zoom(-1);
             }
@@ -55,7 +61,7 @@ public class Controller {
         gc.fillRect(0, 0, 1600, 900);
     }
 
-    private void draw() {
+    public void draw() {
         double drawLen = city.getDrawLen();
         double offset = city.getOffset();
         prepareBackground();
@@ -108,17 +114,17 @@ public class Controller {
                     gc.lineTo(carPosX - 2 * carDrawLen, carPosY + carDrawLen);
                     gc.lineTo(carPosX, carPosY + carDrawLen);
                     gc.lineTo(carPosX, carPosY);
-                } else if(side == 2){
+                } else if (side == 2) {
                     gc.lineTo(carPosX + 2 * carDrawLen, carPosY);
                     gc.lineTo(carPosX + 2 * carDrawLen, carPosY + carDrawLen);
                     gc.lineTo(carPosX, carPosY + carDrawLen);
                     gc.lineTo(carPosX, carPosY);
-                } else if(side == 1){
+                } else if (side == 1) {
                     gc.lineTo(carPosX + carDrawLen, carPosY);
                     gc.lineTo(carPosX + carDrawLen, carPosY - 2 * carDrawLen);
                     gc.lineTo(carPosX, carPosY - 2 * carDrawLen);
                     gc.lineTo(carPosX, carPosY);
-                } else{
+                } else {
                     gc.lineTo(carPosX + carDrawLen, carPosY);
                     gc.lineTo(carPosX + carDrawLen, carPosY + 2 * carDrawLen);
                     gc.lineTo(carPosX, carPosY + 2 * carDrawLen);
