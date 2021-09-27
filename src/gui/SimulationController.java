@@ -4,11 +4,24 @@ import city.*;
 import file.CityReader;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.HPos;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
+import javafx.stage.Stage;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -17,26 +30,37 @@ import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
 
-public class Controller {
+public class SimulationController {
 
     private City city;
+    private CityUpdater updater;
     private final int maxLanes = 6;
     private final double step = 10;
+    ScheduledExecutorService executor;
 
     @FXML
     private Canvas simulationView;
+    @FXML
+    private GridPane simulationGrid;
 
     public void initialize() {
-        CityReader reader = new CityReader("src/city.txt");
+        Properties appProps = new Properties();
+        try {
+            appProps.load(new FileInputStream("src/app.properties"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String cityInput = appProps.getProperty("cityPath");
+        CityReader reader = new CityReader(cityInput);
         city = reader.readCity();
         draw();
-        CityUpdater updater = new CityUpdater(city, this);
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        updater = new CityUpdater(city, this);
+        executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(updater, 0, 35, TimeUnit.MILLISECONDS);
     }
 
     @FXML
-    public void readKeys(KeyEvent e) {
+    public void readKeys(KeyEvent e) throws IOException {
         if (city != null) {
             String key = e.getCode().toString();
             switch (key) {
@@ -47,7 +71,7 @@ public class Controller {
                 case "L" -> city.updateCity();
                 case "K" -> city.changeL();
                 case "C" -> city.addRandCar();
-                case "Q" -> city.printRoadStatistics();
+                case "ENTER" -> returnToMainMenu();
 //                case "O" -> city.zoom(1);
 //                case "P" -> city.zoom(-1);
             }
@@ -69,6 +93,14 @@ public class Controller {
         drawJunctions(drawLen, gc);
         drawRoads(drawLen, gc);
         drawCars(drawLen, gc, offset);
+        drawTimer(gc);
+    }
+
+    private void drawTimer(GraphicsContext gc) {
+        gc.setFill(Color.BLACK);
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setFont(new Font(35));
+        gc.fillText(city.getTimeElapsed(), 10,25);
     }
 
     private void drawCars(double drawLen, GraphicsContext gc, double cityOffset) {
@@ -198,6 +230,11 @@ public class Controller {
             gc.lineTo(x, y);
             gc.stroke();
 
+            gc.setFill(Color.BLACK);
+            gc.setTextAlign(TextAlignment.LEFT);
+            gc.setFont(new Font(15));
+            gc.fillText(String.valueOf(junction.getId()), x+1,y+13);
+
             gc.beginPath();
             gc.setStroke(Color.GREEN);
             gc.setLineWidth(5);
@@ -279,5 +316,20 @@ public class Controller {
             gc.lineTo(eX + drawLen, eY);
             gc.stroke();
         }
+    }
+
+    public void stopRunning(){
+        executor.shutdownNow();
+        Label simEndedNotification = new Label("Simulation finished! Press ENTER to return to main menu.");
+        simEndedNotification.setFont(new Font(40));
+        GridPane.setHalignment(simEndedNotification, HPos.CENTER);
+        simulationGrid.add(simEndedNotification, 0, 0);
+    }
+
+    private void returnToMainMenu() throws IOException {
+        Stage stage = (Stage) simulationGrid.getScene().getWindow();
+        Parent settings = FXMLLoader.load(getClass().getResource("mainMenu.fxml"));
+        stage.setScene(new Scene(settings, 800, 600));
+        stage.centerOnScreen();
     }
 }

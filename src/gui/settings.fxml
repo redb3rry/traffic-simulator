@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<GridPane fx:id="settingsGrid" alignment="CENTER" hgap="20" prefHeight="600.0" prefWidth="800.0" vgap="20"
+          xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="gui.SettingsController">
+    <children>
+
+        <Label text="City configuration" GridPane.columnIndex="0" GridPane.rowIndex="1">
+            <font>
+                <Font size="15.0"/>
+            </font>
+        </Label>
+        <Button text="Choose city file" onAction="#chooseCityFilePathHandle" GridPane.columnIndex="1" GridPane.columnSpan="1"
+                GridPane.rowIndex="1"/>
+        <Label fx:id="cityChooserLabel" text="src/city.txt" GridPane.columnIndex="2" GridPane.rowIndex="1">
+            <font>
+                <Font size="12.0"/>
+            </font>
+        </Label>
+        <Label text="Car maximum" GridPane.columnIndex="0" GridPane.rowIndex="2">
+            <font>
+                <Font size="15.0"/>
+            </font>
+        </Label>
+        <TextField fx:id="maxCarsField" GridPane.columnIndex="1" GridPane.columnSpan="2"
+                   GridPane.rowIndex="2"/>
+        <Label text="Simulation length" GridPane.columnIndex="0" GridPane.rowIndex="3">
+            <font>
+                <Font size="15.0"/>
+            </font>
+        </Label>
+        <TextField fx:id="simLengthField" GridPane.columnIndex="1" GridPane.columnSpan="2"
+                   GridPane.rowIndex="3"/>
+        <Label text="Weather" GridPane.columnIndex="0" GridPane.rowIndex="4">
+            <font>
+                <Font size="15.0"/>
+            </font>
+        </Label>
+        <ComboBox fx:id="weatherSelect" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="4"
+                  promptText="choose">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Normal"/>
+                    <String fx:value="Rain"/>
+                    <String fx:value="Snow"/>
+                </FXCollections>
+            </items>
+            <value>
+                <String fx:value="Normal"/>
+            </value>
+        </ComboBox>
+        <Label text="Driver type modifiers" GridPane.columnIndex="0" GridPane.rowIndex="5">
+            <font>
+                <Font size="15.0"/>
+            </font>
+        </Label>
+        <Label text="Careful" GridPane.columnIndex="1" GridPane.rowIndex="6">
+            <font>
+                <Font size="12.0"/>
+            </font>
+        </Label>
+        <TextField fx:id="carefulMod" GridPane.columnIndex="2"
+                   GridPane.rowIndex="6"/>
+        <Label text="Standard" GridPane.columnIndex="1" GridPane.rowIndex="7">
+            <font>
+                <Font size="12.0"/>
+            </font>
+        </Label>
+        <TextField fx:id="standardMod" GridPane.columnIndex="2"
+                   GridPane.rowIndex="7"/>
+        <Label text="Aggressive" GridPane.columnIndex="1" GridPane.rowIndex="8">
+            <font>
+                <Font size="12.0"/>
+            </font>
+        </Label>
+        <TextField fx:id="aggressiveMod" GridPane.columnIndex="2"
+                   GridPane.rowIndex="8"/>
+        <Label text="Router type" GridPane.columnIndex="0" GridPane.rowIndex="9">
+            <font>
+                <Font size="15.0"/>
+            </font>
+        </Label>
+        <ComboBox fx:id="routerSelect" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="9"
+                  promptText="choose">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Dynamic"/>
+                    <String fx:value="Static"/>
+                </FXCollections>
+            </items>
+            <value>
+                <String fx:value="Dynamic"/>
+            </value>
+        </ComboBox>
+        <Label text="Report output" GridPane.columnIndex="0" GridPane.rowIndex="10">
+            <font>
+                <Font size="15.0"/>
+            </font>
+        </Label>
+        <Button text="Choose report output" onAction="#chooseOutputFilePathHandle" GridPane.columnIndex="1" GridPane.columnSpan="1"
+                GridPane.rowIndex="10"/>
+        <Label fx:id="outputChooserLabel" text="src/output.txt" GridPane.columnIndex="2" GridPane.rowIndex="10">
+            <font>
+                <Font size="12.0"/>
+            </font>
+        </Label>
+        <Button text="Save settings" onAction="#saveButtonHandle" GridPane.columnIndex="1" GridPane.rowIndex="11"/>
+        <Button text="Cancel" onAction="#cancelButtonHandle" GridPane.columnIndex="2" GridPane.rowIndex="11"/>
+    </children>
+    <padding>
+        <Insets bottom="50.0" left="10.0" right="10.0" top="50.0"/>
+    </padding>
+    <columnConstraints>
+        <ColumnConstraints/>
+        <ColumnConstraints/>
+        <ColumnConstraints/>
+        <ColumnConstraints minWidth="10.0" prefWidth="100.0"/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints/>
+        <RowConstraints/>
+    </rowConstraints>
+</GridPane>

@@ -4,23 +4,33 @@ import router.DynamicRouter;
 import router.IRouter;
 import router.StaticRouter;
 
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
-import static java.lang.Math.max;
 
 public class City {
     private ArrayList<Junction> junctions;
     private ArrayList<Road> roads;
     private ArrayList<Car> cars;
     private int junctionsNum;
-    private int maxAllowedCars = 100;
+    private int maxAllowedCars;
+    private double simulationTime;
+    private String weather;
+    private int carefulDriverMod;
+    private int standardDriverMod;
+    private int aggressiveDriverMod;
     private int currentCars;
     private final double drawLen;
     private final double offset;
-    private float timeElapsed;
+    private int timeElapsed;
     private int tick;
     private float timeMultiplier;
     private IRouter router;
+    private String routerType;
+    private String reportOutput;
 
     public double getDrawLen() {
         return drawLen;
@@ -30,8 +40,46 @@ public class City {
         return offset;
     }
 
-    public int getMaxAllowedCars() { return maxAllowedCars; }
-    public int getCurrentCars() { return currentCars; }
+    public int getMaxAllowedCars() {
+        return maxAllowedCars;
+    }
+
+    public double getSimulationTime() {
+        return simulationTime;
+    }
+
+    public int getCurrentCars() {
+        return currentCars;
+    }
+
+    public String getTimeElapsed() {
+        double time = Math.round(timeElapsed * timeMultiplier * 100.0) / 100.0;
+        return Double.toString(time);
+    }
+
+    public String getWeather() {
+        return weather;
+    }
+
+    public int getCarefulDriverMod() {
+        return carefulDriverMod;
+    }
+
+    public int getStandardDriverMod() {
+        return standardDriverMod;
+    }
+
+    public int getAggressiveDriverMod() {
+        return aggressiveDriverMod;
+    }
+
+    public String getRouterType() {
+        return routerType;
+    }
+
+    public String getReportOutput() {
+        return reportOutput;
+    }
 
     public ArrayList<Junction> getJunctions() {
         return junctions;
@@ -52,15 +100,35 @@ public class City {
         this.tick = 1;
         this.timeMultiplier = 0.1f;
         cars = new ArrayList<>();
-        router = new DynamicRouter(this);
+
+        Properties appProps = new Properties();
+        try {
+            appProps.load(new FileInputStream("src/app.properties"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        maxAllowedCars = Integer.parseInt(appProps.getProperty("carMax"));
+        simulationTime = Double.parseDouble(appProps.getProperty("simulationTime"));
+        weather = appProps.getProperty("weather");
+        carefulDriverMod = Integer.parseInt(appProps.getProperty("carefulDriverModifier"));
+        standardDriverMod = Integer.parseInt(appProps.getProperty("standardDriverModifier"));
+        aggressiveDriverMod = Integer.parseInt(appProps.getProperty("aggressiveDriverModifier"));
+        routerType = appProps.getProperty("router");
+        reportOutput = appProps.getProperty("output");
+
+        if (routerType == "Dynamic") {
+            router = new DynamicRouter(this);
+        } else {
+            router = new StaticRouter(this);
+        }
     }
 
     //FOR TESTING PURPOSES
     public void addRandCar() {
         int randStart = getRandomNumber(0, junctionsNum);
-        int randEnd = getRandomNumber(0,junctionsNum);
-        while(randStart == randEnd){
-            randEnd = getRandomNumber(0,junctionsNum);
+        int randEnd = getRandomNumber(0, junctionsNum);
+        while (randStart == randEnd) {
+            randEnd = getRandomNumber(0, junctionsNum);
         }
         Car car = new Car(100, 0, getRandomNumber(5, 10), getRandomNumber(40, 80), new Driver(), junctions.get(randStart), junctions.get(randEnd));
         car.setLane(0);
@@ -183,11 +251,11 @@ public class City {
                     continue;
                 } else if (road.getLength() - car.getCurrentPosition() < 35) {
                     //TODO double check this
-                    if(!road.getTo().checkForGreenLight(road.getSide())) {
+                    if (!road.getTo().checkForGreenLight(road.getSide())) {
 //                        car.setCurrentSpeed(1);
 //                        car.move(1);
 //                        continue;
-                        car.changeSpeed((-2) * car.getDeceleration() * (tick*timeMultiplier));
+                        car.changeSpeed((-2) * car.getDeceleration() * (tick * timeMultiplier));
                         if (car.getCurrentSpeed() < 0) {
                             car.setCurrentSpeed(1);
                         }
@@ -197,12 +265,12 @@ public class City {
                 }
                 //Driving
                 if (car.getCurrentPosition() + 4 * car.getCurrentSpeed() > road.getLength() - car.getDriver().stopBuffer && !road.getTo().checkForGreenLight(road.getSide())) {
-                        car.changeSpeed((-1) * car.getDeceleration() * (tick*timeMultiplier));
-                        if (car.getCurrentSpeed() < 0) {
-                            car.setCurrentSpeed(1);
-                        }
+                    car.changeSpeed((-1) * car.getDeceleration() * (tick * timeMultiplier));
+                    if (car.getCurrentSpeed() < 0) {
+                        car.setCurrentSpeed(1);
+                    }
                 } else if (car.getCurrentSpeed() < road.getSpeedLimit() && car.getCurrentSpeed() < car.getMaxSpeed()) {
-                    car.changeSpeed(car.getAcceleration() * (tick*timeMultiplier));
+                    car.changeSpeed(car.getAcceleration() * (tick * timeMultiplier));
                 }
                 moveCar(road, car);
             }
@@ -234,14 +302,14 @@ public class City {
             }
             Road nextRoad = car.getRoute().remove();
             car.setCurrentPosition(0);
-            car.setLane(nextRoad.getLaneNum()-1);
+            car.setLane(nextRoad.getLaneNum() - 1);
             nextRoad.getCars().add(car);
         }
     }
 
     private void updateTrafficLights() {
         for (Junction junction : junctions) {
-            if ((timeElapsed*timeMultiplier) % junction.getLightChangeTime() == 0) {
+            if ((timeElapsed * timeMultiplier) % junction.getLightChangeTime() == 0) {
                 junction.changeLights();
             }
         }
@@ -251,18 +319,12 @@ public class City {
         return (int) ((Math.random() * (max - min)) + min);
     }
 
-    public Road getRoadFromTo(Junction from, Junction to){
-        for( Road road: roads){
-            if(road.getFrom() == from && road.getTo() == to){
+    public Road getRoadFromTo(Junction from, Junction to) {
+        for (Road road : roads) {
+            if (road.getFrom() == from && road.getTo() == to) {
                 return road;
             }
         }
         return null;
-    }
-
-    public void printRoadStatistics(){
-        for(Road road: roads){
-            System.out.println(road.getStatistics());
-        }
     }
 }
