@@ -58,7 +58,13 @@ public class DynamicRouter implements IRouter{
         }
 
         for(Road road: city.getRoads()){
-            double len = (Math.sqrt(Math.pow(road.getTo().getX() - road.getFrom().getX(), 2) + Math.pow(road.getTo().getY() - road.getFrom().getY(), 2)) / road.getSpeedLimit()) + road.getTo().getLightChangeTime() + ((double) road.getCars().size() / (double) road.getLaneNum());
+            double lightChangeTime;
+            if(road.getSide() == 0 || road.getSide() == 2){
+                lightChangeTime = road.getTo().getLeftRightLightChangeTime();
+            } else {
+                lightChangeTime = road.getTo().getUpDownLightChangeTime();
+            }
+            double len = (Math.sqrt(Math.pow(road.getTo().getX() - road.getFrom().getX(), 2) + Math.pow(road.getTo().getY() - road.getFrom().getY(), 2)) / road.getSpeedLimit()) + lightChangeTime + ((double) road.getCars().size() / (double) road.getLaneNum());
             neighbors.get(road.getFrom().getId()).put(road.getTo().getId(), len);
         }
         return neighbors;

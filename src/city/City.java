@@ -300,8 +300,13 @@ public class City {
 
     private void updateTrafficLights() {
         for (Junction junction : junctions) {
-            if ((timeElapsed * timeMultiplier) % junction.getLightChangeTime() == 0) {
+            double currentTime = timeElapsed * timeMultiplier;
+            if(junction.isUpDownLight() && junction.getLastLightChange() + junction.getUpDownLightChangeTime() <= currentTime){
                 junction.changeLights();
+                junction.setLastLightChange(currentTime);
+            } else if (junction.isLeftRightLight() && junction.getLastLightChange() + junction.getLeftRightLightChangeTime() <= currentTime){
+                junction.changeLights();
+                junction.setLastLightChange(currentTime);
             }
         }
     }

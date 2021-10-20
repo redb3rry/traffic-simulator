@@ -2,14 +2,17 @@ package city;
 
 public class Junction {
     private final int id;
-    private final float lightChangeTime;
+    private final float leftRightLightChangeTime;
+    private final float upDownLightChangeTime;
+    private double lastLightChange = 0;
     private double x,y;
     private boolean upDownLight;
     private boolean leftRightLight;
 
-    public Junction(int id, float lightChangeTime, double x, double y) {
+    public Junction(int id, float leftRightLightChangeTime, float upDownLightChangeTime, double x, double y) {
         this.id = id;
-        this.lightChangeTime = lightChangeTime;
+        this.leftRightLightChangeTime = leftRightLightChangeTime;
+        this.upDownLightChangeTime = upDownLightChangeTime;
         this.x = x;
         this.y = y;
         upDownLight = true;
@@ -20,7 +23,8 @@ public class Junction {
     public String toString() {
         return "Junction{" +
                 "id=" + id +
-                ", lightChangeTime=" + lightChangeTime +
+                ", leftRightLightChangeTime=" + leftRightLightChangeTime +
+                ", upDownLightChangeTime=" + upDownLightChangeTime +
                 ", x=" + x +
                 ", y=" + y +
                 '}';
@@ -30,8 +34,12 @@ public class Junction {
         return id;
     }
 
-    public float getLightChangeTime() {
-        return lightChangeTime;
+    public float getLeftRightLightChangeTime() {
+        return leftRightLightChangeTime;
+    }
+
+    public float getUpDownLightChangeTime() {
+        return upDownLightChangeTime;
     }
 
     public double getX() {
@@ -61,5 +69,21 @@ public class Junction {
     public void changeLights(){
         leftRightLight = !leftRightLight;
         upDownLight = !upDownLight;
+    }
+
+    public double getLastLightChange() {
+        return lastLightChange;
+    }
+
+    public void setLastLightChange(double lastLightChange) {
+        this.lastLightChange = lastLightChange;
+    }
+
+    public boolean isUpDownLight() {
+        return upDownLight;
+    }
+
+    public boolean isLeftRightLight() {
+        return leftRightLight;
     }
 }

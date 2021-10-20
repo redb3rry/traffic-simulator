@@ -65,7 +65,13 @@ public class StaticRouter implements IRouter {
             }
         }
         for (Road road : city.getRoads()) {
-            double len = Math.sqrt(Math.pow(road.getTo().getX()-road.getFrom().getX(),2) + Math.pow(road.getTo().getY()-road.getFrom().getY(),2))/road.getSpeedLimit() + road.getTo().getLightChangeTime();
+            double lightChangeTime;
+            if(road.getSide() == 0 || road.getSide() == 2){
+                lightChangeTime = road.getTo().getLeftRightLightChangeTime();
+            } else {
+                lightChangeTime = road.getTo().getUpDownLightChangeTime();
+            }
+            double len = Math.sqrt(Math.pow(road.getTo().getX()-road.getFrom().getX(),2) + Math.pow(road.getTo().getY()-road.getFrom().getY(),2))/road.getSpeedLimit() + lightChangeTime;
             graph[road.getFrom().getId()][road.getTo().getId()] = len;
         }
         return graph;

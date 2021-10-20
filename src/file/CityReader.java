@@ -32,10 +32,11 @@ public class CityReader {
             int num = scanner.nextInt();
             for (int i = 0; i < num; i++) {
                 int id = scanner.nextInt();
-                float time = scanner.nextFloat();
+                float lrtime = scanner.nextFloat();
+                float udtime = scanner.nextFloat();
                 double x = scanner.nextDouble();
                 double y = scanner.nextDouble();
-                junctions.add(new Junction(id, time, x, y));
+                junctions.add(new Junction(id, lrtime, udtime, x, y));
             }
             num = scanner.nextInt();
             for (int i = 0; i < num; i++) {
