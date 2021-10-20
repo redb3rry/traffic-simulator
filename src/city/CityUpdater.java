@@ -26,7 +26,15 @@ public class CityUpdater implements Runnable {
                     ctrl.stopRunning();
                     generateSimulationReport();
                 }
-                if(city.getMaxAllowedCars() > city.getCurrentCars()){
+                if(0.65 * city.getMaxAllowedCars() > city.getCurrentCars()){
+                    city.addRandCar();
+                    city.addRandCar();
+                    city.addRandCar();
+                }
+                else if(0.95 * city.getMaxAllowedCars() > city.getCurrentCars()){
+                    city.addRandCar();
+                    city.addRandCar();
+                } else if(city.getMaxAllowedCars() > city.getCurrentCars()){
                     city.addRandCar();
                 }
                 city.updateCity();

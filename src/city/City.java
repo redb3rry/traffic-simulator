@@ -1,12 +1,18 @@
 package city;
 
+import city.driver.AggressiveDriver;
+import city.driver.CarefulDriver;
+import city.driver.IDriver;
+import city.driver.StandardDriver;
+import city.weather.IWeather;
+import city.weather.Normal;
+import city.weather.Rain;
+import city.weather.Snow;
 import router.DynamicRouter;
 import router.IRouter;
 import router.StaticRouter;
 
-import java.io.BufferedWriter;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -18,7 +24,7 @@ public class City {
     private int junctionsNum;
     private int maxAllowedCars;
     private double simulationTime;
-    private String weather;
+    private IWeather weather;
     private int carefulDriverMod;
     private int standardDriverMod;
     private int aggressiveDriverMod;
@@ -31,6 +37,7 @@ public class City {
     private IRouter router;
     private String routerType;
     private String reportOutput;
+    private int viewDistance = 4;
 
     public double getDrawLen() {
         return drawLen;
@@ -58,7 +65,7 @@ public class City {
     }
 
     public String getWeather() {
-        return weather;
+        return weather.getWeatherName();
     }
 
     public int getCarefulDriverMod() {
@@ -109,28 +116,47 @@ public class City {
         }
         maxAllowedCars = Integer.parseInt(appProps.getProperty("carMax"));
         simulationTime = Double.parseDouble(appProps.getProperty("simulationTime"));
-        weather = appProps.getProperty("weather");
+
+        String weatherName = appProps.getProperty("weather");
+        if (weatherName.equals("Normal")) {
+            weather = new Normal();
+        } else if (weatherName.equals("Rain")) {
+            weather = new Rain();
+        } else {
+            weather = new Snow();
+        }
         carefulDriverMod = Integer.parseInt(appProps.getProperty("carefulDriverModifier"));
         standardDriverMod = Integer.parseInt(appProps.getProperty("standardDriverModifier"));
         aggressiveDriverMod = Integer.parseInt(appProps.getProperty("aggressiveDriverModifier"));
         routerType = appProps.getProperty("router");
         reportOutput = appProps.getProperty("output");
 
-        if (routerType == "Dynamic") {
+        if (routerType.equals("Dynamic")) {
             router = new DynamicRouter(this);
         } else {
             router = new StaticRouter(this);
         }
     }
 
-    //FOR TESTING PURPOSES
     public void addRandCar() {
         int randStart = getRandomNumber(0, junctionsNum);
         int randEnd = getRandomNumber(0, junctionsNum);
         while (randStart == randEnd) {
             randEnd = getRandomNumber(0, junctionsNum);
         }
-        Car car = new Car(100, 0, getRandomNumber(5, 10), getRandomNumber(40, 80), new Driver(), junctions.get(randStart), junctions.get(randEnd));
+
+        IDriver driver;
+        int modSum = carefulDriverMod + standardDriverMod + aggressiveDriverMod;
+        int randDriver = getRandomNumber(1, modSum+1);
+        if (randDriver <= carefulDriverMod) {
+            driver = new CarefulDriver(weather.getWeatherName());
+        } else if (randDriver <= carefulDriverMod + standardDriverMod) {
+            driver = new StandardDriver(weather.getWeatherName());
+        } else {
+            driver = new AggressiveDriver(weather.getWeatherName());
+        }
+
+        Car car = new Car(100, 0, getRandomNumber(20, 30), getRandomNumber(100, 120), driver, junctions.get(randStart), junctions.get(randEnd));
         car.setLane(0);
         Queue<Road> foundRoute = router.findRoute(junctions.get(randStart), junctions.get(randEnd));
         Queue<Road> carRoute = new LinkedList<>(foundRoute);
@@ -164,37 +190,6 @@ public class City {
         }
     }
 
-//    public void zoom(double step){
-//        drawLen+=step;
-//        offset=drawLen/4;
-//        for (Car car:cars ){
-//            car.setCurrentPosition(car.getCurrentPosition()+step);
-//        }
-//        for (Road road:roads){
-//            Junction from = road.getFrom();
-//            Junction to = road.getTo();
-//            int side = road.getSide();
-//            switch (side) {
-//                case 0 -> {
-//                    from.setX(from.getX() - step * 10);
-//                    to.setX(to.getX() + step * 10);
-//                }
-//                case 2 -> {
-//                    from.setX(from.getX() + step * 10);
-//                    to.setX(to.getX() - step * 10);
-//                }
-//                case 1 -> {
-//                    from.setY(from.getY() - step * 10);
-//                    to.setY(to.getY() + step * 10);
-//                }
-//                case 3 -> {
-//                    from.setY(from.getY() + step * 10);
-//                    to.setY(to.getY() - step * 10);
-//                }
-//            }
-//        }
-//    }
-
     public void changeL() {
         for (Junction junction : junctions) {
             junction.changeLights();
@@ -224,18 +219,18 @@ public class City {
                 for (Car nextCar : carsInFront) {
                     nextCarPos = nextCar.getCurrentPosition();
                     int nextCarLane = nextCar.getLane();
-                    if (car.getLane() == nextCarLane && car.getCurrentPosition() + 4 * car.getCurrentSpeed() > nextCarPos - car.getDriver().stopBuffer) {
+                    if (car.getLane() == nextCarLane && car.getCurrentPosition() + (weather.getViewModifier() * viewDistance) * car.getCurrentSpeed() > nextCarPos - car.getDriver().getSlowBuffer()) {
                         slowDown = true;
                         break;
                     }
                 }
                 if (slowDown) {
-                    if (nextCarPos - car.getCurrentPosition() < 30 && road.getLaneNum() != 1) {
+                    if (nextCarPos - car.getCurrentPosition() < car.getDriver().getStopBuffer() && road.getLaneNum() != 1) {
                         if (car.tryChangeLane(road, car, i, drawLen)) {
                             continue;
                         }
                     }
-                    car.changeSpeed((-1) * car.getDeceleration() * (tick * timeMultiplier));
+                    car.changeSpeed((-1) * (car.getDeceleration() * weather.getStoppingModifier()) * (tick * timeMultiplier));
                     if (car.getCurrentSpeed() < 1) {
                         car.setCurrentSpeed(0);
                     } else {
@@ -249,13 +244,9 @@ public class City {
                         carsToMove.add(car);
                     }
                     continue;
-                } else if (road.getLength() - car.getCurrentPosition() < 35) {
-                    //TODO double check this
+                } else if (road.getLength() - car.getCurrentPosition() < car.getDriver().getStopBuffer()) {
                     if (!road.getTo().checkForGreenLight(road.getSide())) {
-//                        car.setCurrentSpeed(1);
-//                        car.move(1);
-//                        continue;
-                        car.changeSpeed((-2) * car.getDeceleration() * (tick * timeMultiplier));
+                        car.changeSpeed((-2) * (car.getDeceleration() * weather.getStoppingModifier()) * (tick * timeMultiplier));
                         if (car.getCurrentSpeed() < 0) {
                             car.setCurrentSpeed(1);
                         }
@@ -264,12 +255,12 @@ public class City {
                     }
                 }
                 //Driving
-                if (car.getCurrentPosition() + 4 * car.getCurrentSpeed() > road.getLength() - car.getDriver().stopBuffer && !road.getTo().checkForGreenLight(road.getSide())) {
-                    car.changeSpeed((-1) * car.getDeceleration() * (tick * timeMultiplier));
+                if (car.getCurrentPosition() + (weather.getViewModifier() * viewDistance) * car.getCurrentSpeed() > road.getLength() - car.getDriver().getSlowBuffer() && !road.getTo().checkForGreenLight(road.getSide())) {
+                    car.changeSpeed((-1) * (car.getDeceleration() * weather.getStoppingModifier()) * (tick * timeMultiplier));
                     if (car.getCurrentSpeed() < 0) {
                         car.setCurrentSpeed(1);
                     }
-                } else if (car.getCurrentSpeed() < road.getSpeedLimit() && car.getCurrentSpeed() < car.getMaxSpeed()) {
+                } else if (car.getCurrentSpeed() < (car.getDriver().getSpeedModifier(road.getSpeedLimit())) && car.getCurrentSpeed() < car.getMaxSpeed()) {
                     car.changeSpeed(car.getAcceleration() * (tick * timeMultiplier));
                 }
                 moveCar(road, car);

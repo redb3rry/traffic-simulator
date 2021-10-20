@@ -1,18 +1,20 @@
 package city;
 
+import city.driver.IDriver;
+
 import java.util.ArrayList;
 import java.util.Queue;
 
 public class Car implements Comparable<Car> {
     private double maxSpeed, currentSpeed;
     private double acceleration, deceleration;
-    private Driver driver;
+    private IDriver driver;
     private int lane;
     private double currentPosition;
     private Junction start, end;
     private Queue<Road> route;
 
-    public Car(float maxSpeed, float currentSpeed, float acceleration, float deceleration, Driver driver, Junction start, Junction end) {
+    public Car(float maxSpeed, float currentSpeed, float acceleration, float deceleration, IDriver driver, Junction start, Junction end) {
         this.maxSpeed = maxSpeed;
         this.currentSpeed = currentSpeed;
         this.acceleration = acceleration;
@@ -66,7 +68,7 @@ public class Car implements Comparable<Car> {
         return deceleration;
     }
 
-    public Driver getDriver() {
+    public IDriver getDriver() {
         return driver;
     }
 

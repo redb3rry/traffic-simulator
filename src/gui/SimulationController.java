@@ -94,13 +94,60 @@ public class SimulationController {
         drawRoads(drawLen, gc);
         drawCars(drawLen, gc, offset);
         drawTimer(gc);
+        drawWeather(gc);
     }
 
     private void drawTimer(GraphicsContext gc) {
         gc.setFill(Color.BLACK);
         gc.setTextAlign(TextAlignment.LEFT);
         gc.setFont(new Font(35));
-        gc.fillText(city.getTimeElapsed(), 10,25);
+        gc.fillText("Elapsed time: "+ city.getTimeElapsed(), 10,25);
+        gc.fillText("Cars: "+ city.getCurrentCars(), 10, 65);
+    }
+
+    private void drawWeather(GraphicsContext gc) {
+        gc.setStroke(Color.BLACK);
+        gc.moveTo(20,80);
+        gc.lineTo(110,80);
+        gc.lineTo(110,170);
+        gc.lineTo(20,170);
+        gc.lineTo(20,80);
+        gc.stroke();
+        if(city.getWeather() == "rain"){
+            gc.setFill(Color.BLUE);
+            gc.fillOval(40, 110, 50, 50);
+            double[] triX = {41, 89, 65};
+            double[] triY = {127.5, 127.5, 80};
+            gc.fillPolygon(triX, triY, 3);
+        } else if (city.getWeather() == "snow"){
+            gc.setStroke(Color.SKYBLUE);
+            gc.moveTo(65,80);
+            gc.lineTo(65, 170);
+            gc.moveTo(20,125);
+            gc.lineTo(110,125);
+            gc.moveTo(30,90);
+            gc.lineTo(100,160);
+            gc.moveTo(30,160);
+            gc.lineTo(100,90);
+            gc.stroke();
+        } else {
+            gc.setFill(Color.GOLD);
+            gc.fillOval(40, 100, 50, 50);
+            gc.setStroke(Color.GOLD);
+            gc.moveTo(40, 125);
+            gc.lineTo( 20, 125);
+            gc.moveTo(90, 125);
+            gc.lineTo( 110, 125);
+            gc.moveTo(65, 100);
+            gc.lineTo( 65, 80);
+            gc.moveTo(65, 145);
+            gc.lineTo( 65, 165);
+            gc.moveTo(30,90);
+            gc.lineTo(100,160);
+            gc.moveTo(30,160);
+            gc.lineTo(100,90);
+            gc.stroke();
+        }
     }
 
     private void drawCars(double drawLen, GraphicsContext gc, double cityOffset) {
@@ -138,7 +185,13 @@ public class SimulationController {
                     }
                 }
                 gc.beginPath();
-                gc.setStroke(Color.BLUE);
+                if(car.getDriver().getDriverName() == "standard"){
+                    gc.setStroke(Color.BLUE);
+                } else if(car.getDriver().getDriverName() == "aggressive"){
+                    gc.setStroke(Color.CRIMSON);
+                } else {
+                    gc.setStroke(Color.DARKOLIVEGREEN);
+                }
                 gc.setLineWidth(1);
                 gc.moveTo(carPosX, carPosY);
                 if (side == 0) {
@@ -327,6 +380,7 @@ public class SimulationController {
     }
 
     private void returnToMainMenu() throws IOException {
+        stopRunning();
         Stage stage = (Stage) simulationGrid.getScene().getWindow();
         Parent settings = FXMLLoader.load(getClass().getResource("mainMenu.fxml"));
         stage.setScene(new Scene(settings, 800, 600));
