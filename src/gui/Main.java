@@ -17,7 +17,8 @@ public class Main extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("mainMenu.fxml"));
         primaryStage.initStyle(StageStyle.DECORATED);
         primaryStage.setTitle("Traffic Simulator");
-        primaryStage.setScene(new Scene(root, 800, 600));
+        primaryStage.setScene(new Scene(root, 1024, 800));
+        primaryStage.centerOnScreen();
         primaryStage.show();
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override

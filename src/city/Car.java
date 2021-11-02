@@ -13,6 +13,7 @@ public class Car implements Comparable<Car> {
     private double currentPosition;
     private Junction start, end;
     private Queue<Road> route;
+    private boolean isDisabled;
 
     public Car(float maxSpeed, float currentSpeed, float acceleration, float deceleration, IDriver driver, Junction start, Junction end) {
         this.maxSpeed = maxSpeed;
@@ -30,6 +31,9 @@ public class Car implements Comparable<Car> {
 
     public void changeSpeed(double change) {
         this.currentSpeed += change;
+        if (this.currentSpeed < 0) {
+            this.currentSpeed = 0;
+        }
     }
 
     public void setCurrentSpeed(double speed) {
@@ -88,6 +92,14 @@ public class Car implements Comparable<Car> {
         this.route = route;
     }
 
+    public boolean isDisabled() {
+        return isDisabled;
+    }
+
+    public void setDisabled(boolean disabled) {
+        isDisabled = disabled;
+    }
+
     @Override
     public int compareTo(Car o) {
         if (this.currentPosition > o.currentPosition) {
@@ -95,6 +107,37 @@ public class Car implements Comparable<Car> {
         } else {
             return -1;
         }
+    }
+
+    public void tryEnterRoad(Road road, Car car, int carId, double drawLen) {
+        ArrayList<Car> cars = road.getCars();
+        int laneToEnter = road.getLaneNum() - 1;
+        if (road.getCars().size() == 1) {
+            car.setLane(laneToEnter);
+        }
+        int startId = carId - 5;
+        int endId = carId + 5;
+        if (startId < 0)
+            startId = 0;
+        if (endId > cars.size())
+            endId = cars.size();
+        boolean canEnter = true;
+        for (int i = startId; i < endId; i++) {
+            Car nCar = cars.get(i);
+            double posDif = 0;
+            if( i < carId) {
+                posDif = car.getCurrentPosition() - nCar.getCurrentPosition();
+            } else {
+                posDif = nCar.getCurrentPosition() - car.getCurrentPosition();
+            }
+            if (nCar.getLane() != laneToEnter) {
+                continue;
+            } else if (posDif < 3 * drawLen){
+                canEnter = false;
+            }
+        }
+        if(canEnter)
+            car.setLane(laneToEnter);
     }
 
     public boolean tryChangeLane(Road road, Car car, int carId, double drawLen) {

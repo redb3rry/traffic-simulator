@@ -26,17 +26,6 @@ public class CityUpdater implements Runnable {
                     ctrl.stopRunning();
                     generateSimulationReport();
                 }
-                if(0.65 * city.getMaxAllowedCars() > city.getCurrentCars()){
-                    city.addRandCar();
-                    city.addRandCar();
-                    city.addRandCar();
-                }
-                else if(0.95 * city.getMaxAllowedCars() > city.getCurrentCars()){
-                    city.addRandCar();
-                    city.addRandCar();
-                } else if(city.getMaxAllowedCars() > city.getCurrentCars()){
-                    city.addRandCar();
-                }
                 city.updateCity();
                 ctrl.draw();
             }
@@ -57,6 +46,12 @@ public class CityUpdater implements Runnable {
         //Road statistics
         for (Road road : city.getRoads()) {
             report += "\n" + road.getStatistics();
+        }
+        report += "\n\n##################################\n";
+        report += "\nCOLLISIONS";
+        report += "\nNumber of collisions = " + city.getCollisions().size();
+        for (Collision collision : city.getCollisions()) {
+            report += "\n" + collision.prettyPrintCollision();
         }
         //Save report to file
         try {

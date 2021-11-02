@@ -100,7 +100,7 @@ public class SettingsController {
     private void returnToMainMenu() throws IOException {
         Stage stage = (Stage) settingsGrid.getScene().getWindow();
         Parent settings = FXMLLoader.load(getClass().getResource("mainMenu.fxml"));
-        stage.setScene(new Scene(settings, 800, 600));
+        stage.setScene(new Scene(settings, 1024, 800));
         stage.centerOnScreen();
     }
 }

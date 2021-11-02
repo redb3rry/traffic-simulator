@@ -64,16 +64,42 @@ public class SimulationController {
         if (city != null) {
             String key = e.getCode().toString();
             switch (key) {
-                case "A" -> city.moveRight(step);
-                case "D" -> city.moveLeft(step);
-                case "W" -> city.moveDown(step);
-                case "S" -> city.moveUp(step);
-                case "L" -> city.updateCity();
-                case "K" -> city.changeL();
-                case "C" -> city.addRandCar();
-                case "ENTER" -> returnToMainMenu();
-//                case "O" -> city.zoom(1);
-//                case "P" -> city.zoom(-1);
+                case "A": {
+                    city.moveRight(step);
+                    break;
+                }
+                case "D": {
+                    city.moveLeft(step);
+                    break;
+                }
+                case "W": {
+                    city.moveDown(step);
+                    break;
+                }
+                case "S": {
+                    city.moveUp(step);
+                    break;
+                }
+                case "L": {
+                    city.updateCity();
+                    break;
+                }
+                case "K": {
+                    city.changeL();
+                    break;
+                }
+                case "C": {
+                    city.addRandCar();
+                    break;
+                }
+                case "ENTER": {
+                    returnToMainMenu();
+                    break;
+                }
+                case "Q": {
+                    System.out.println(city.getCollisions());
+                    break;
+                }
             }
             draw();
         }
@@ -101,51 +127,51 @@ public class SimulationController {
         gc.setFill(Color.BLACK);
         gc.setTextAlign(TextAlignment.LEFT);
         gc.setFont(new Font(35));
-        gc.fillText("Elapsed time: "+ city.getTimeElapsed(), 10,25);
-        gc.fillText("Cars: "+ city.getCurrentCars(), 10, 65);
+        gc.fillText("Elapsed time: " + city.getTimeElapsed(), 10, 25);
+        gc.fillText("Cars: " + city.getCurrentCars(), 10, 65);
     }
 
     private void drawWeather(GraphicsContext gc) {
         gc.setStroke(Color.BLACK);
-        gc.moveTo(20,80);
-        gc.lineTo(110,80);
-        gc.lineTo(110,170);
-        gc.lineTo(20,170);
-        gc.lineTo(20,80);
+        gc.moveTo(20, 80);
+        gc.lineTo(110, 80);
+        gc.lineTo(110, 170);
+        gc.lineTo(20, 170);
+        gc.lineTo(20, 80);
         gc.stroke();
-        if(city.getWeather() == "rain"){
+        if (city.getWeather() == "rain") {
             gc.setFill(Color.BLUE);
             gc.fillOval(40, 110, 50, 50);
             double[] triX = {41, 89, 65};
             double[] triY = {127.5, 127.5, 80};
             gc.fillPolygon(triX, triY, 3);
-        } else if (city.getWeather() == "snow"){
+        } else if (city.getWeather() == "snow") {
             gc.setStroke(Color.SKYBLUE);
-            gc.moveTo(65,80);
+            gc.moveTo(65, 80);
             gc.lineTo(65, 170);
-            gc.moveTo(20,125);
-            gc.lineTo(110,125);
-            gc.moveTo(30,90);
-            gc.lineTo(100,160);
-            gc.moveTo(30,160);
-            gc.lineTo(100,90);
+            gc.moveTo(20, 125);
+            gc.lineTo(110, 125);
+            gc.moveTo(30, 90);
+            gc.lineTo(100, 160);
+            gc.moveTo(30, 160);
+            gc.lineTo(100, 90);
             gc.stroke();
         } else {
             gc.setFill(Color.GOLD);
             gc.fillOval(40, 100, 50, 50);
             gc.setStroke(Color.GOLD);
             gc.moveTo(40, 125);
-            gc.lineTo( 20, 125);
+            gc.lineTo(20, 125);
             gc.moveTo(90, 125);
-            gc.lineTo( 110, 125);
+            gc.lineTo(110, 125);
             gc.moveTo(65, 100);
-            gc.lineTo( 65, 80);
+            gc.lineTo(65, 80);
             gc.moveTo(65, 145);
-            gc.lineTo( 65, 165);
-            gc.moveTo(30,90);
-            gc.lineTo(100,160);
-            gc.moveTo(30,160);
-            gc.lineTo(100,90);
+            gc.lineTo(65, 165);
+            gc.moveTo(30, 90);
+            gc.lineTo(100, 160);
+            gc.moveTo(30, 160);
+            gc.lineTo(100, 90);
             gc.stroke();
         }
     }
@@ -167,27 +193,33 @@ public class SimulationController {
                 }
                 double carPosX = 0, carPosY = 0;
                 switch (side) {
-                    case 0 -> {
+                    case 0: {
                         carPosX = road.getFrom().getX() + maxLanes * drawLen + car.getCurrentPosition();
                         carPosY = road.getFrom().getY() + (double) maxLanes / 2 * drawLen + offset + laneOffset;
+                        break;
                     }
-                    case 2 -> {
+                    case 2: {
                         carPosX = road.getFrom().getX() - car.getCurrentPosition();
                         carPosY = road.getFrom().getY() + (double) maxLanes / 2 * drawLen - carDrawLen - offset - laneOffset;
+                        break;
                     }
-                    case 1 -> {
+                    case 1: {
                         carPosX = road.getFrom().getX() + (double) maxLanes / 2 * drawLen - carDrawLen - offset - laneOffset;
                         carPosY = road.getFrom().getY() + maxLanes * drawLen + car.getCurrentPosition();
+                        break;
                     }
-                    case 3 -> {
+                    case 3: {
                         carPosX = road.getFrom().getX() + (double) maxLanes / 2 * drawLen + offset + laneOffset;
                         carPosY = road.getFrom().getY() - car.getCurrentPosition();
+                        break;
                     }
                 }
                 gc.beginPath();
-                if(car.getDriver().getDriverName() == "standard"){
+                if (car.isDisabled()) {
+                    gc.setStroke(Color.BLACK);
+                } else if (car.getDriver().getDriverName() == "standard") {
                     gc.setStroke(Color.BLUE);
-                } else if(car.getDriver().getDriverName() == "aggressive"){
+                } else if (car.getDriver().getDriverName() == "aggressive") {
                     gc.setStroke(Color.CRIMSON);
                 } else {
                     gc.setStroke(Color.DARKOLIVEGREEN);
@@ -232,33 +264,37 @@ public class SimulationController {
             int side = road.getSide();
             double sX = 0, sY = 0, eX = 0, eY = 0;
             switch (side) {
-                case 0 -> {
+                case 0: {
                     sX = fX + maxLanes * drawLen;
                     eX = tX;
                     sY = fY + (double) maxLanes * drawLen / 2;
                     eY = tY + (double) maxLanes * drawLen / 2;
-                    drawRoadLeftRight(sX, sY, eX, eY, lanes, gc);
+                    drawRoadLeftRight(sX, sY, eX, eY, lanes, road.getTraffic(drawLen), gc);
+                    break;
                 }
-                case 2 -> {
+                case 2: {
                     sX = fX;
                     eX = tX + maxLanes * drawLen;
                     sY = fY;
                     eY = tY;
-                    drawRoadLeftRight(sX, sY, eX, eY, lanes, gc);
+                    drawRoadLeftRight(sX, sY, eX, eY, lanes, road.getTraffic(drawLen), gc);
+                    break;
                 }
-                case 1 -> {
+                case 1: {
                     sX = fX;
                     eX = tX;
                     sY = fY + maxLanes * drawLen;
                     eY = tY;
-                    drawRoadUpDown(sX, sY, eX, eY, lanes, gc);
+                    drawRoadUpDown(sX, sY, eX, eY, lanes, road.getTraffic(drawLen), gc);
+                    break;
                 }
-                case 3 -> {
+                case 3: {
                     sX = fX + (double) maxLanes / 2 * drawLen;
                     eX = tX + (double) maxLanes / 2 * drawLen;
                     sY = fY;
                     eY = tY + maxLanes * drawLen;
-                    drawRoadUpDown(sX, sY, eX, eY, lanes, gc);
+                    drawRoadUpDown(sX, sY, eX, eY, lanes, road.getTraffic(drawLen), gc);
+                    break;
                 }
             }
             if (road.getLength() == -1) {
@@ -286,7 +322,7 @@ public class SimulationController {
             gc.setFill(Color.BLACK);
             gc.setTextAlign(TextAlignment.LEFT);
             gc.setFont(new Font(15));
-            gc.fillText(String.valueOf(junction.getId()), x+1,y+13);
+            gc.fillText(String.valueOf(junction.getId()), x + 1, y + 13);
 
             gc.beginPath();
             gc.setStroke(Color.GREEN);
@@ -313,8 +349,9 @@ public class SimulationController {
 
     }
 
-    private void drawRoadLeftRight(double sX, double sY, double eX, double eY, int lanes, GraphicsContext gc) {
+    private void drawRoadLeftRight(double sX, double sY, double eX, double eY, int lanes, double traffic, GraphicsContext gc) {
         double drawLen = city.getDrawLen();
+        addTrafficColor(traffic, sX, sY, eX, eY, gc, 0);
         gc.beginPath();
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(2);
@@ -342,8 +379,9 @@ public class SimulationController {
         }
     }
 
-    private void drawRoadUpDown(double sX, double sY, double eX, double eY, int lanes, GraphicsContext gc) {
+    private void drawRoadUpDown(double sX, double sY, double eX, double eY, int lanes, double traffic, GraphicsContext gc) {
         double drawLen = city.getDrawLen();
+        addTrafficColor(traffic, sX, sY, eX, eY, gc, 1);
         gc.beginPath();
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(2);
@@ -371,7 +409,34 @@ public class SimulationController {
         }
     }
 
-    public void stopRunning(){
+    private void addTrafficColor(double traffic, double x1, double y1, double x2, double y2, GraphicsContext gc, int side){
+        if(traffic > 60.0){
+            gc.setFill(Color.rgb(162,0,0,0.15));
+        } else if(traffic > 40.0){
+            gc.setFill(Color.rgb(255, 128, 0, 0.15));
+        } else if(traffic > 20.0){
+            gc.setFill(Color.rgb(255,255,0,0.15));
+        } else {
+            return;
+        }
+        double rectStartX = Math.min(x1,x2);
+        double rectStartY = Math.min(y1,y2);
+        double rectEndX = Math.max(x1,x2);
+        double rectEndY = Math.max(y1,y2);
+        double xLen;
+        double yLen;
+        if( side == 0 ){
+            xLen = rectEndX-rectStartX;
+            yLen = city.getDrawLen() * 3;
+        } else {
+            xLen = city.getDrawLen() * 3;
+            yLen = rectEndY-rectStartY;
+        }
+        gc.fillRect(rectStartX, rectStartY, xLen, yLen);
+    }
+
+
+    public void stopRunning() {
         executor.shutdownNow();
         Label simEndedNotification = new Label("Simulation finished! Press ENTER to return to main menu.");
         simEndedNotification.setFont(new Font(40));
@@ -383,7 +448,7 @@ public class SimulationController {
         stopRunning();
         Stage stage = (Stage) simulationGrid.getScene().getWindow();
         Parent settings = FXMLLoader.load(getClass().getResource("mainMenu.fxml"));
-        stage.setScene(new Scene(settings, 800, 600));
+        stage.setScene(new Scene(settings, 1024, 800));
         stage.centerOnScreen();
     }
 }

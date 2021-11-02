@@ -14,6 +14,7 @@ public class Road {
     private double speedSum;
     private double flowSum;
     private int roadMoveCounter;
+    private double traffic;
 
     public Road(Junction to, Junction from, int speedLimit, int laneNum) {
         this.to = to;
@@ -26,7 +27,7 @@ public class Road {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return String.format(from.getId() + " -> " + to.getId() + ", length: " + length);
     }
 
@@ -58,11 +59,11 @@ public class Road {
     public void updateStatistics(double carSpeed) {
         roadMoveCounter++;
         speedSum += carSpeed;
-        flowSum += carSpeed/speedLimit;
+        flowSum += carSpeed / speedLimit;
     }
 
-    public String getStatistics(){
-        return "Road " + from.getId() + " -> " + to.getId() + ": Average speed = " + speedSum/ roadMoveCounter + "; Average flow = " + flowSum/ roadMoveCounter *100;
+    public String getStatistics() {
+        return "Road " + from.getId() + " -> " + to.getId() + ": Average speed = " + speedSum / roadMoveCounter + "; Average flow = " + flowSum / roadMoveCounter * 100;
     }
 
     public int getSide() {
@@ -87,9 +88,14 @@ public class Road {
         }
     }
 
-    public void setLength(double length){
+    public double getTraffic(double drawlen) {
+        return cars.size() / ((length / drawlen) * laneNum) * 100;
+    }
+
+    public void setLength(double length) {
         this.length = length;
     }
+
     public double getLength() {
         return length;
     }
